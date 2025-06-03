@@ -174,6 +174,8 @@ const taskList = document.getElementById('task-list');
    7. Check if day is valid for the given month (use an array for days in each month)
    8. Return true if date is valid, false otherwise
 */
+
+
 function validateDate(dateStr) {
   if (dateStr.indexOf('/') !== dateStr.lastIndexOf('/') || dateStr.indexOf('/') === -1) {
   return false;
@@ -288,6 +290,66 @@ function calculatePriority(dateStr, timeStr) {
   // For sorting, we'll use a more precise priority based on exact timestamp
   // Return the timestamp itself for more accurate sorting
   return dueDate.getTime();
+}
+
+function addTask() {
+    const taskText = taskInput.value.trim();
+    const dateStr = dateInput.value.trim();
+    const timeStr = timeInput.value.trim();
+
+    // Validate inputs
+    if (!taskText) {
+        alert("Please enter a task.");
+        return;
+    }
+
+    if (!validateDate(dateStr)) {
+        alert("Invalid date format. Use MM/DD.");
+        return;
+    }
+
+    if (!validateTime(timeStr)) {
+        alert("Invalid time format. Use HH:MM (24-hour).");
+        return;
+    }
+
+    const priority = calculatePriority(dateStr, timeStr);
+    tasks.push([taskText, priority]);
+    taskDueDates.push([dateStr, timeStr]);
+
+    // Sort tasks by priority (earliest first)
+    tasks.sort((a, b) => a[1] - b[1]);
+
+    // Re-render task list
+    renderTaskList();
+
+    // Clear input fields
+    taskInput.value = "";
+    dateInput.value = "";
+    timeInput.value = "";
+}
+
+function renderTaskList() {
+    taskList.innerHTML = "";
+
+    tasks.forEach((task, index) => {
+        const listItem = document.createElement("li");
+        listItem.textContent = `${task[0]} (Due: ${taskDueDates[index][0]} at ${taskDueDates[index][1]})`;
+        taskList.appendChild(listItem);
+    });
+}
+
+function addRandomTask() {
+    const randomIndex = Math.floor(Math.random() * randomTasks.length);
+    const taskText = randomTasks[randomIndex];
+    taskInput.value = taskText;  // Just insert into the input field
+}
+
+
+function clearTasks() {
+    tasks = [];
+    taskDueDates = [];
+    renderTaskList();
 }
 
 
@@ -578,6 +640,59 @@ function calculate() {
         display.value = "Error";
     }
 }
+
+
+
+// TIMER APP FUNCTIONS
+let countdownInterval;
+let remainingTime = 0;
+
+function startCountdown() {
+    const secondsInput = document.getElementById("seconds").value;
+    const motivationDisplay = document.getElementById("motivation");
+    const timerDisplay = document.getElementById("timer");
+    const statusDisplay = document.getElementById("status");
+
+    const seconds = parseInt(secondsInput);
+    if (isNaN(seconds) || seconds <= 0) {
+        alert("Please enter a positive number of seconds.");
+        return;
+    }
+
+    clearInterval(countdownInterval);
+    remainingTime = seconds;
+
+    updateTimerDisplay();
+    motivationDisplay.textContent = "Keep going! You can do it!";
+    statusDisplay.textContent = "Timer is running...";
+
+    countdownInterval = setInterval(() => {
+        remainingTime--;
+        updateTimerDisplay();
+
+        if (remainingTime <= 0) {
+            clearInterval(countdownInterval);
+            motivationDisplay.textContent = "Time's up! Great job!";
+            statusDisplay.textContent = "Completed!";
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const timerDisplay = document.getElementById("timer");
+    const minutes = Math.floor(remainingTime / 60);
+    const seconds = remainingTime % 60;
+    timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function resetTimer() {
+    clearInterval(countdownInterval);
+    remainingTime = 0;
+    document.getElementById("timer").textContent = "00:00";
+    document.getElementById("motivation").textContent = "Enter seconds and start the timer for motivation!";
+    document.getElementById("status").textContent = "";
+}
+
 
 
 // NATO Converter Functions
